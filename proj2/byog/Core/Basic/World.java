@@ -1,56 +1,92 @@
 package byog.Core.Basic;
 
-import byog.Core.Generator.RoomGenerator;
+import byog.TileEngine.TERenderer;
 import byog.TileEngine.TETile;
 import byog.TileEngine.Tileset;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
 public class World {
-    static final int WIDTH = 100;
-    static final int HEIGHT = 100;
-    private TETile[][] world;
-    private final Random rand;
-    public World(Random rand) {
-        world = new TETile[WIDTH][HEIGHT];
-        this.rand = rand;
+    public static final int WIDTH = 100;
+    public static final int HEIGHT = 100;
+
+    protected static TETile[][] world;
+    private List<Room> rooms;
+    private Random rand;
+
+    public World(long SEED) {
+        rand = new Random(SEED);
+        world = new TETile[HEIGHT][WIDTH];
+        rooms = new ArrayList<>();
     }
-    public TETile[][] getWorld() {
+
+    public void fillWithNothing() {
+        for (int x = 0; x < WIDTH; x++) {
+            for (int y = 0; y < HEIGHT; y++) {
+                world[x][y] = Tileset.NOTHING;
+            }
+        }
+    }
+
+    public void makeRooms(int numOfRoom) {
+        for (int i = 0; i < numOfRoom; i++) {
+            int seed = rand.nextInt();
+            Room room = new Room(seed);
+            if (room.getX() == -1) { // 生成失败
+                continue;
+            }
+            rooms.add(room);
+        }
+        System.out.println("room size = " + rooms.size());
+    }
+
+    public void placeRoom() {
+        Iterator<Room> iterator = rooms.iterator();
+        while (iterator.hasNext()) {
+            Room room = iterator.next();
+            if (room.isOverlap()) { // 去除重叠
+                iterator.remove();
+                continue;
+            }
+            placeOneRoom(room);
+        }
+        System.out.println("room size = " + rooms.size());
+    }
+
+    private void placeOneRoom(Room room) {
+        int x = room.getX();
+        int y = room.getY();
+        int height = room.getHeight();
+        int width = room.getWidth();
+        TETile[][] r = room.getRoom();
+        int row = height, col = 0;
+        for (int Y = y; Y < y + height; Y++) {
+            row--;
+            col = 0;
+            for (int X = x; X < x + width; X++) {
+                world[X][Y] = r[row][col];
+                col++;
+            }
+        }
+    }
+
+    
+
+    public  TETile[][] getWorld() {
         return world;
     }
-    /** place room on position p
-     * @param p position
-     * @param room room
-     * */
-    public void placeRoom(Room room, Position p) {
-        int roomHeight = room.getHeight();
-        int roomWidth = room.getWidth();
-        room.setLowerLeft(roomHeight - 1 + p.getX(), p.getY());
-        room.setUpperRight(p.getX(), roomWidth - 1 + p.getY());
-        for (int i = 0; i < roomHeight; i++) {
-            for (int j = 0; j < roomWidth; j++) {
-                world[p.getX() + i][p.getY() + j] = room.getRoom()[i][j];
-            }
-        }
-    }
 
-    public void fillWorld() {
-    }
-    public void resetToNothing() {
-        for (int i = 0; i < HEIGHT; i++) {
-            for (int j = 0; j < WIDTH; j++) {
-                world[i][j] = Tileset.NOTHING;
-            }
-        }
-    }
-
-    public int getHeight() {
-        return HEIGHT;
-    }
-
-    public int getWidth() {
-        return WIDTH;
+    public static void main(String[] args) {
+        TERenderer ter = new TERenderer();
+        ter.initialize(100, 100);
+        Random rand = new Random(11454);
+        World world = new World(rand.nextInt());
+        world.fillWithNothing();
+        world.makeRooms(rand.nextInt(50, 100));
+        world.placeRoom();
+        ter.renderFrame(world.getWorld());
     }
 }

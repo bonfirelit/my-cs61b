@@ -1,114 +1,103 @@
 package byog.Core.Basic;
 
+import byog.TileEngine.TERenderer;
 import byog.TileEngine.TETile;
 import byog.TileEngine.Tileset;
 
 import java.util.Random;
 
+import static byog.Core.Basic.World.world;
+
 public class Room {
-    private TETile[][] room;
-    private int width;
     private int height;
-    private Position lowerLeft;
-    private Position upperRight;
-    private Random rand;
+    private int width;
+    // bottom left conner position(x, y)
+    private int x;
+    private int y;
+    private TETile[][] room;
+    private final Random rand;
+
+
     public Room(long seed) {
         rand = new Random(seed);
-        setHeight(rand);
-        setWidth(rand);
-        room = new TETile[this.height][this.width];
-        setRoomPosition();
+        setPosition(); // 确定room的左下角在world中的位置坐标(x, y)
+        int retry = 8;
+        // while循环尝试在world的(x, y)处创建room
+        do {
+            setHeight();
+            setWidth();
+            retry--;
+            if (retry == 0) break;
+        } while (x + width >= World.WIDTH || y + height >= World.HEIGHT);
+        if (retry == 0) {
+            x = -1;
+            y = -1;
+            return;
+        }
+        room = new TETile[height][width];
         roundByWall();
-        fillRoom();
-    }
-    /** for intersection room */
-    public Room(Position lowerLeft, Position upperRight) {
-        this.lowerLeft = lowerLeft;
-        this.upperRight = upperRight;
-    }
-    private void setHeight(Random rand) {
-        this.height = rand.nextInt(3, 20);
-    }
-    private void setRoomPosition() {
-        Position p = new Position();
-        p.setX(rand.nextInt(World.HEIGHT / 2));
-        p.setY(rand.nextInt(World.WIDTH / 2));
-        setLowerLeft(height - 1 + p.getX(), p.getY());
-        setUpperRight(p.getX(), width - 1 + p.getY());
-    }
-    private void setWidth(Random rand) {
-        this.width = rand.nextInt(3,20);
-    }
-    private void roundByWall() {
-        int i;
-        // row
-        for (i = 0; i < upperRight.getX() - lowerLeft.getX(); i++) {
-            room[upperRight.getY()][lowerLeft.getX() + i] = Tileset.WALL;
-            room[lowerLeft.getY()][lowerLeft.getX() + i] = Tileset.WALL;
-        }
-        // col
-        for (i = 0; i < upperRight.getY() - lowerLeft.getY(); i++) {
-            room[upperRight.getX() + i][lowerLeft.getY()] = Tileset.WALL;
-            room[upperRight.getX() + i][upperRight.getY()] = Tileset.WALL;
-        }
+        fillWithFloor();
+        // 以上代码构造了一个room，并且在world中的坐标也已经确定，但还未将其放置到world中
     }
 
-    public void roundByFloor() {
-        int i;
-        // row
-        for (i = 0; i < upperRight.getX() - lowerLeft.getX(); i++) {
-            room[upperRight.getY()][lowerLeft.getX() + i] = Tileset.FLOOR;
-            room[lowerLeft.getY()][lowerLeft.getX() + i] = Tileset.FLOOR;
-        }
-        // col
-        for (i = 0; i < upperRight.getY() - lowerLeft.getY(); i++) {
-            room[upperRight.getX() + i][lowerLeft.getY()] = Tileset.FLOOR;
-            room[upperRight.getX() + i][upperRight.getY()] = Tileset.FLOOR;
-        }
-    }
-
-    private void fillRoom() {
-        for (int i = 1; i < height - 1; i++) {
-            for (int j = 1; j < width - 1; j++) {
-                room[i][j] = Tileset.FLOOR;
+    public boolean isOverlap() {
+        for (int X = x; X <=  x + width - 1; X++) {
+            for (int Y = y; Y <= y + height - 1; Y++) {
+                if (world[X][Y] == Tileset.WALL) {
+                    return true;
+                }
             }
         }
-    }
-    public boolean intersectWith(Room that) {
-        int x1 = this.lowerLeft.getX();
-        int y1 = this.lowerLeft.getY();
-        int x2 = this.upperRight.getX();
-        int y2 = this.upperRight.getY();
-        int x3 = that.lowerLeft.getX();
-        int y3 = that.lowerLeft.getY();
-        int x4 = that.upperRight.getX();
-        int y4 = that.upperRight.getY();
-        return Math.max(x1, x3) <= Math.max(x2, x4) && Math.max(y1, y3) <= Math.max(y2, y4);
+        return false;
     }
 
-    public Position getLowerLeft() {
-        return lowerLeft;
-    }
-    public Position getUpperRight() {
-        return upperRight;
+    public void setPosition() {
+        x = rand.nextInt(World.WIDTH);
+        y = rand.nextInt(World.HEIGHT);
     }
 
-    /** the lowerleft conner in world */
-    public void setLowerLeft(int x, int y) {
-        lowerLeft = new Position(x, y);
+    public int getX() {
+        return x;
     }
-    /** the upperright conner in world */
-    public void setUpperRight(int x, int y) {
-        upperRight = new Position(x, y);
+    public int getY() {
+        return y;
+    }
+
+    public void setHeight() {
+        height = rand.nextInt(3, World.HEIGHT / 2);
+    }
+    public int getHeight() {
+        return height;
+    }
+    public void setWidth() {
+        width = rand.nextInt(3, World.WIDTH / 2);
+    }
+    public int getWidth() {
+        return width;
+    }
+    public void roundByWall() {
+        for (int row = 0; row < height; row++) {
+            room[row][0] = room[row][width - 1] = Tileset.WALL;
+        }
+        for (int col = 0; col < width; col++) {
+            room[0][col] = room[height - 1][col] = Tileset.WALL;
+        }
+    }
+
+    public void fillWithFloor() {
+        for (int row = 0; row < height; row++) {
+            for (int col = 0; col < width; col++) {
+                if (room[row][col] == Tileset.WALL) continue;
+                room[row][col] = Tileset.FLOOR;
+            }
+        }
     }
 
     public TETile[][] getRoom() {
         return room;
     }
-    public int getWidth() {
-        return width;
-    }
-    public int getHeight() {
-        return height;
+
+    public static void main(String[] args) {
+
     }
 }
