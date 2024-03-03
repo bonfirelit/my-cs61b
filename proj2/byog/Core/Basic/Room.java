@@ -62,13 +62,13 @@ public class Room implements Comparable<Room>{
     }
 
     public void setHeight() {
-        height = rand.nextInt(3, World.HEIGHT / 2);
+        height = rand.nextInt(10, 20);
     }
     public int getHeight() {
         return height;
     }
     public void setWidth() {
-        width = rand.nextInt(3, World.WIDTH / 2);
+        width = rand.nextInt(10, 20);
     }
     public int getWidth() {
         return width;

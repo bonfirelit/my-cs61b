@@ -7,8 +7,8 @@ import byog.TileEngine.Tileset;
 import java.util.*;
 
 public class World {
-    public static final int WIDTH = 100;
-    public static final int HEIGHT = 100;
+    public static final int WIDTH = 50;
+    public static final int HEIGHT = 50;
     private final int LEFT = 0;
     private final int RIGHT = 1;
     private final int UP = 2;
@@ -76,7 +76,7 @@ public class World {
     }
 
     public void connectAllRoom() {
-        for (int i = 0; i < rooms.size() - 1; i += 2) {
+        for (int i = 0; i < rooms.size() - 1; i += 1) {
             connectRoom(rooms.get(i), rooms.get(i + 1));
         }
     }
@@ -127,19 +127,47 @@ public class World {
         int height = room.getHeight();
         int x = room.getPosition().getX();
         int y = room.getPosition().getY();
+        int X, Y;
+        Position p;
         if (side == RIGHT) {
-            return new Position(x + width - 1, rand.nextInt(y + 1, y + height - 1));
+            do {
+                Y = rand.nextInt(y + 1, y + height - 1);
+                p = new Position(x + width - 1, Y);
+            } while (!isValid(p, RIGHT));
+            return p;
         }
         if (side == LEFT) {
-            return new Position(x, rand.nextInt(y + 1, y + height - 1));
+            do {
+                Y = rand.nextInt(y + 1, y + height - 1);
+                p = new Position(x, Y);
+            } while (!isValid(p, LEFT));
+            return p;
         }
         if (side == UP) {
-            return new Position(rand.nextInt(x + 1, x + width - 1), y + height - 1);
+            do {
+                X = rand.nextInt(x + 1, x + width - 1);
+                p = new Position(X, y + height - 1);
+            } while (!isValid(p, UP));
+            return p;
         }
         if (side == DOWN) {
-            return new Position(rand.nextInt(x + 1, x + width - 1), y);
+            do {
+                X = rand.nextInt(x + 1, x + width - 1);
+                p = new Position(X, y);
+            } while (!isValid(p, DOWN));
+            return p;
         }
         return null;
+    }
+
+    // 判断所选取的点是否合法，否则会导致路径相互覆盖
+    private boolean isValid(Position p, int side) {
+        int x = p.getX();
+        int y = p.getY();
+        if (side == LEFT || side == RIGHT) {
+            return world[x][y] == Tileset.WALL && world[x][y - 1] == Tileset.WALL && world[x][y + 1] == Tileset.WALL;
+        }
+        return world[x][y] == Tileset.WALL && world[x - 1][y] == Tileset.WALL && world[x + 1][y] == Tileset.WALL;
     }
 
     // down是room下边框的点，up是room上边框的点
@@ -201,7 +229,7 @@ public class World {
             // 拐角
             world[x3 + 1][y1 - 1] = Tileset.WALL;
             world[x3 + 1][y1] = Tileset.WALL;
-            for (int y = y1; y <= y2; y++) {
+            for (int y = y1 + 1; y <= y2; y++) {
                 world[x3][y] = Tileset.FLOOR;
                 world[x3 + 1][y] = Tileset.WALL;
                 world[x3 - 1][y] = Tileset.WALL;
@@ -258,11 +286,11 @@ public class World {
 
     public static void main(String[] args) {
         TERenderer ter = new TERenderer();
-        ter.initialize(100, 100);
+        ter.initialize(WIDTH, HEIGHT);
         Random rand = new Random(1142514);
         World world = new World(rand.nextInt());
         world.fillWithNothing();
-        world.makeRooms(rand.nextInt(50, 100));
+        world.makeRooms(rand.nextInt(100, 103));
         world.placeRoom();
         world.connectAllRoom();
         ter.renderFrame(world.getWorld());
