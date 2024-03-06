@@ -1,5 +1,9 @@
 package byog.Core.Basic;
 
+import byog.Core.RandomUtils;
+
+import java.util.Random;
+
 public class Position {
     private int x;
     private int y;
@@ -13,4 +17,5 @@ public class Position {
     public int getY() {
         return y;
     }
+
 }

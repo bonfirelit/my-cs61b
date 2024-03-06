@@ -38,6 +38,7 @@ public class Room implements Comparable<Room>{
         // 以上代码构造了一个room，并且在world中的坐标也已经确定，但还未将其放置到world中
     }
 
+    // 检查将要放置的地方是否会导致重叠
     public boolean isOverlap() {
         int x = position.getX();
         int y = position.getY();
@@ -62,13 +63,13 @@ public class Room implements Comparable<Room>{
     }
 
     public void setHeight() {
-        height = rand.nextInt(10, 20);
+        height = rand.nextInt(7, 11);
     }
     public int getHeight() {
         return height;
     }
     public void setWidth() {
-        width = rand.nextInt(10, 20);
+        width = rand.nextInt(7, 11);
     }
     public int getWidth() {
         return width;

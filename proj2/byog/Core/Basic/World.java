@@ -54,7 +54,7 @@ public class World {
             }
             placeOneRoom(room);
         }
-        // 对剩下的room按x坐标大小排序，使得之后连接room的hallway不重叠
+        // 对剩下的room按x坐标大小排序
         Collections.sort(rooms);
     }
 
@@ -73,6 +73,17 @@ public class World {
                 col++;
             }
         }
+    }
+
+    public void addLockedDoor() {
+        // 随机选择一个room
+        Room r = rooms.get(rand.nextInt(0, rooms.size()));
+        // 选择room的一条边
+        int side = rand.nextInt(0, 4);
+        // 选择一个点
+        Position p = choose(r, side);
+        // 改为lockedDoor
+        world[p.getX()][p.getY()] = Tileset.LOCKED_DOOR;
     }
 
     public void connectAllRoom() {
@@ -162,12 +173,13 @@ public class World {
 
     // 判断所选取的点是否合法，否则会导致路径相互覆盖
     private boolean isValid(Position p, int side) {
-        int x = p.getX();
-        int y = p.getY();
-        if (side == LEFT || side == RIGHT) {
-            return world[x][y] == Tileset.WALL && world[x][y - 1] == Tileset.WALL && world[x][y + 1] == Tileset.WALL;
-        }
-        return world[x][y] == Tileset.WALL && world[x - 1][y] == Tileset.WALL && world[x + 1][y] == Tileset.WALL;
+        return true; // 使用putWall函数后，似乎不需要判断了
+//        int x = p.getX();
+//        int y = p.getY();
+//        if (side == LEFT || side == RIGHT) {
+//            return world[x][y] == Tileset.WALL && world[x][y - 1] == Tileset.WALL && world[x][y + 1] == Tileset.WALL;
+//        }
+//        return world[x][y] == Tileset.WALL && world[x - 1][y] == Tileset.WALL && world[x + 1][y] == Tileset.WALL;
     }
 
     // down是room下边框的点，up是room上边框的点
@@ -180,35 +192,35 @@ public class World {
         int y3 = y1 - rand.nextInt(1, y1 - y2);
         for (int y = y1; y >= y3; y--) {
             world[x1][y] = Tileset.FLOOR;
-            world[x1 - 1][y] = Tileset.WALL;
-            world[x1 + 1][y] = Tileset.WALL;
+            putWall(x1 - 1, y);
+            putWall(x1 + 1, y);
         }
         if (x1 < x2) {
-            world[x1 - 1][y3 - 1] = Tileset.WALL;
-            world[x1][y3 - 1] = Tileset.WALL;
+            putWall(x1 - 1, y3 - 1);
+            putWall(x1, y3 - 1);
             for (int x = x1 + 1; x <= x2; x++) {
                 world[x][y3] = Tileset.FLOOR;
-                world[x][y3 + 1] = Tileset.WALL;
-                world[x][y3 - 1] = Tileset.WALL;
+                putWall(x, y3 + 1);
+                putWall(x, y3 - 1);
             }
-            world[x2 + 1][y3 + 1] = Tileset.WALL;
-            world[x2 + 1][y3] = Tileset.WALL;
+            putWall(x2 + 1, y3 + 1);
+            putWall(x2 + 1, y3);
         }
         else {
-            world[x1 + 1][y3 - 1] = Tileset.WALL;
-            world[x1][y3 - 1] = Tileset.WALL;
+            putWall(x1 + 1, y3 - 1);
+            putWall(x1, y3 - 1);
             for (int x = x1 - 1; x >= x2; x--) {
                 world[x][y3] = Tileset.FLOOR;
-                world[x][y3 + 1] = Tileset.WALL;
-                world[x][y3 - 1] = Tileset.WALL;
+                putWall(x, y3 + 1);
+                putWall(x, y3 - 1);
             }
-            world[x2 - 1][y3 + 1] = Tileset.WALL;
-            world[x2 - 1][y3] = Tileset.WALL;
+            putWall(x2 - 1, y3 + 1);
+            putWall(x2 - 1, y3);
         }
         for (int y = y3 - 1; y >= y2; y--) {
             world[x2][y] = Tileset.FLOOR;
-            world[x2 - 1][y] = Tileset.WALL;
-            world[x2 + 1][y] = Tileset.WALL;
+            putWall(x2 - 1, y);
+            putWall(x2 + 1, y);
         }
     }
 
@@ -222,38 +234,46 @@ public class World {
         int x3 = x1 + rand.nextInt(1, x2 - x1);
         for (int x = x1; x <= x3; x++) {
             world[x][y1] = Tileset.FLOOR;
-            world[x][y1 - 1] = Tileset.WALL;
-            world[x][y1 + 1] = Tileset.WALL;
+            putWall(x, y1 - 1);
+            putWall(x, y1 + 1);
         }
         if (y2 > y1) {
             // 拐角
-            world[x3 + 1][y1 - 1] = Tileset.WALL;
-            world[x3 + 1][y1] = Tileset.WALL;
+            putWall(x3 + 1, y1 - 1);
+            putWall(x3 + 1, y1);
             for (int y = y1 + 1; y <= y2; y++) {
                 world[x3][y] = Tileset.FLOOR;
-                world[x3 + 1][y] = Tileset.WALL;
-                world[x3 - 1][y] = Tileset.WALL;
+                putWall(x3 + 1, y);
+                putWall(x3 - 1, y);
             }
             // 拐角
-            world[x3 - 1][y2 + 1] = Tileset.WALL;
-            world[x3][y2 + 1] = Tileset.WALL;
+            putWall(x3 - 1, y2 + 1);
+            putWall(x3, y2 + 1);
         }
         else {
-            world[x3 + 1][y1 + 1] = Tileset.WALL;
-            world[x3 + 1][y1] = Tileset.WALL;
+            putWall(x3 + 1, y1 + 1);
+            putWall(x3 + 1, y1);
             for (int y = y1 - 1; y >= y2; y--) {
                 world[x3][y] = Tileset.FLOOR;
-                world[x3 + 1][y] = Tileset.WALL;
-                world[x3 - 1][y] = Tileset.WALL;
+                putWall(x3 + 1, y);
+                putWall(x3 - 1, y);
             }
-            world[x3 - 1][y2 - 1] = Tileset.WALL;
-            world[x3][y2 - 1] = Tileset.WALL;
+            putWall(x3 - 1, y2 - 1);
+            putWall(x3, y2 - 1);
         }
         for (int x = x3 + 1; x <= x2; x++) {
             world[x][y2] = Tileset.FLOOR;
-            world[x][y2 - 1] = Tileset.WALL;
-            world[x][y2 + 1] = Tileset.WALL;
+            putWall(x, y2 - 1);
+            putWall(x, y2 + 1);
         }
+    }
+
+    // 用于在生成hallway时在world中放置WALL
+    private void putWall(int x, int y) {
+        if (world[x][y] == Tileset.FLOOR) { // 防止形成死路
+            return;
+        }
+        world[x][y] = Tileset.WALL;
     }
 
     // 返回room2相对于room1的位置
@@ -287,12 +307,13 @@ public class World {
     public static void main(String[] args) {
         TERenderer ter = new TERenderer();
         ter.initialize(WIDTH, HEIGHT);
-        Random rand = new Random(1142514);
+        Random rand = new Random(4567);
         World world = new World(rand.nextInt());
         world.fillWithNothing();
-        world.makeRooms(rand.nextInt(100, 103));
+        world.makeRooms(rand.nextInt(70, 100));
         world.placeRoom();
         world.connectAllRoom();
+        world.addLockedDoor();
         ter.renderFrame(world.getWorld());
     }
 }

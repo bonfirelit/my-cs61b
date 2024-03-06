@@ -3,45 +3,41 @@ package byog.Core;
 import byog.Core.Basic.World;
 
 public class Parser {
-    private int idx;
+    private String option;
+    private long seed;
+
     public Parser() {
-        idx = 0;
+        option = null;
+        seed = 0;
     }
+
     public void parse(String input) {
-        String option = Character.toString(input.charAt(idx));
-        idx++;
+        option = Character.toString(input.charAt(0));
         option = option.toUpperCase();
-        long seed = getSeed(input);
-        if (idx == input.length()) {
-            // Error: must enter S
-            System.exit(1);
-        }
-        if (input.charAt(idx) == 's' || input.charAt(idx) == 'S') {
-            // start game
-            switch (option) {
-                case "N":
-//                newGame(seed);
-                    break;
-                case "L":
-//                loadGame();
-                    break;
-                case "Q":
-//                quit();
-                    break;
-            }
-        }
+        input = input.substring(1);
+        seed = getSeed(input);
     }
+
+    public String getOption() {
+        return option;
+    }
+
+    public long getSeed() {
+        return seed;
+    }
+
     private long getSeed(String input) {
         long seed = 0;
-        for (; idx < input.length(); idx++) {
-            char digit = input.charAt(idx);
-            int num = digit - '0';
-            if (num < 0 || num > 9) {
-                break;
-            }
-            seed = seed * 10 + num;
+        int i;
+        for (i = 0; isDigit(input.charAt(i)); i++) {
+            int t = input.charAt(i) - '0';
+            seed = seed * 10 + t;
         }
         return seed;
+    }
+
+    private boolean isDigit(char c) {
+        return c - '0' >= 0 && c - '0' <= 9;
     }
     public static void main(String[] args) {
 
