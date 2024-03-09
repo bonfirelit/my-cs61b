@@ -3,12 +3,13 @@ package byog.Core.Basic;
 import byog.TileEngine.TERenderer;
 import byog.TileEngine.TETile;
 import byog.TileEngine.Tileset;
+import edu.princeton.cs.introcs.StdDraw;
 
 import java.util.*;
 
 public class World {
-    public static final int WIDTH = 50;
-    public static final int HEIGHT = 50;
+    public static int WIDTH;
+    public static int HEIGHT;
     private final int LEFT = 0;
     private final int RIGHT = 1;
     private final int UP = 2;
@@ -19,9 +20,11 @@ public class World {
     private List<Room> rooms;
     private Random rand;
 
-    public World(long SEED) {
+    public World(long SEED, int width, int height) {
+        World.WIDTH = width;
+        World.HEIGHT = height;
         rand = new Random(SEED);
-        world = new TETile[HEIGHT][WIDTH];
+        world = new TETile[WIDTH][HEIGHT];
         rooms = new ArrayList<>();
     }
 
@@ -78,12 +81,16 @@ public class World {
     public void addLockedDoor() {
         // 随机选择一个room
         Room r = rooms.get(rand.nextInt(0, rooms.size()));
-        // 选择room的一条边
-        int side = rand.nextInt(0, 4);
-        // 选择一个点
-        Position p = choose(r, side);
-        // 改为lockedDoor
-        world[p.getX()][p.getY()] = Tileset.LOCKED_DOOR;
+        int x, y;
+        do {
+            // 选择room的一条边
+            int side = rand.nextInt(0, 4);
+            // 选择一个点
+            Position p = choose(r, side);
+            x = p.getX();
+            y = p.getY();
+        } while (world[x][y] != Tileset.WALL);
+        world[x][y] = Tileset.LOCKED_DOOR;
     }
 
     public void connectAllRoom() {
@@ -139,48 +146,26 @@ public class World {
         int x = room.getPosition().getX();
         int y = room.getPosition().getY();
         int X, Y;
-        Position p;
+        Position p = null;
         if (side == RIGHT) {
-            do {
-                Y = rand.nextInt(y + 1, y + height - 1);
-                p = new Position(x + width - 1, Y);
-            } while (!isValid(p, RIGHT));
-            return p;
+            Y = rand.nextInt(y + 1, y + height - 1);
+            p = new Position(x + width - 1, Y);
         }
         if (side == LEFT) {
-            do {
-                Y = rand.nextInt(y + 1, y + height - 1);
-                p = new Position(x, Y);
-            } while (!isValid(p, LEFT));
-            return p;
+            Y = rand.nextInt(y + 1, y + height - 1);
+            p = new Position(x, Y);
         }
         if (side == UP) {
-            do {
-                X = rand.nextInt(x + 1, x + width - 1);
-                p = new Position(X, y + height - 1);
-            } while (!isValid(p, UP));
-            return p;
+            X = rand.nextInt(x + 1, x + width - 1);
+            p = new Position(X, y + height - 1);
         }
         if (side == DOWN) {
-            do {
-                X = rand.nextInt(x + 1, x + width - 1);
-                p = new Position(X, y);
-            } while (!isValid(p, DOWN));
-            return p;
+            X = rand.nextInt(x + 1, x + width - 1);
+            p = new Position(X, y);
         }
-        return null;
+        return p;
     }
 
-    // 判断所选取的点是否合法，否则会导致路径相互覆盖
-    private boolean isValid(Position p, int side) {
-        return true; // 使用putWall函数后，似乎不需要判断了
-//        int x = p.getX();
-//        int y = p.getY();
-//        if (side == LEFT || side == RIGHT) {
-//            return world[x][y] == Tileset.WALL && world[x][y - 1] == Tileset.WALL && world[x][y + 1] == Tileset.WALL;
-//        }
-//        return world[x][y] == Tileset.WALL && world[x - 1][y] == Tileset.WALL && world[x + 1][y] == Tileset.WALL;
-    }
 
     // down是room下边框的点，up是room上边框的点
     private void connectDown2Up(Position down, Position up) {
@@ -270,7 +255,7 @@ public class World {
 
     // 用于在生成hallway时在world中放置WALL
     private void putWall(int x, int y) {
-        if (world[x][y] == Tileset.FLOOR) { // 防止形成死路
+        if (world[x][y] == Tileset.FLOOR || world[x][y] == Tileset.FLOWER || world[x][y] == Tileset.TREE) { // 防止形成死路
             return;
         }
         world[x][y] = Tileset.WALL;
@@ -299,6 +284,20 @@ public class World {
         return -1;
     }
 
+    public void showTileInfo(int x, int y) {
+        if (world[x][y] == Tileset.FLOOR) {
+            StdDraw.text(0, 0, "FLOOR");
+        }
+        else if (world[x][y] == Tileset.LOCKED_DOOR) {
+            StdDraw.text(0, 0, "LOCKED DOOR");
+        }
+        else if (world[x][y] == Tileset.WALL) {
+            StdDraw.text(0, 0, "WALL");
+        }
+        else if (world[x][y] == Tileset.PLAYER) {
+            StdDraw.text(0, 0, "YOU");
+        }
+    }
 
     public  TETile[][] getWorld() {
         return world;
@@ -306,9 +305,9 @@ public class World {
 
     public static void main(String[] args) {
         TERenderer ter = new TERenderer();
-        ter.initialize(WIDTH, HEIGHT);
-        Random rand = new Random(4567);
-        World world = new World(rand.nextInt());
+        ter.initialize(80, 30);
+        Random rand = new Random(76544);
+        World world = new World(rand.nextInt(), 80, 30);
         world.fillWithNothing();
         world.makeRooms(rand.nextInt(70, 100));
         world.placeRoom();
