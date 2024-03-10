@@ -16,6 +16,7 @@ public class WorldGenerator {
         world.placeRoom();
         world.connectAllRoom();
         world.addLockedDoor();
+        world.createPlayer();
     }
 
     public World getWorld() {

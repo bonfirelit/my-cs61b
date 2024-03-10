@@ -1,9 +1,11 @@
 package byog.Core;
 
+import byog.Core.Basic.Player;
 import byog.Core.Basic.World;
 import byog.Core.Basic.WorldGenerator;
 import byog.TileEngine.TERenderer;
 import byog.TileEngine.TETile;
+import byog.TileEngine.Tileset;
 import edu.princeton.cs.introcs.StdDraw;
 
 import java.awt.*;
@@ -13,6 +15,8 @@ public class Game {
     /* Feel free to change the width and height. */
     public static final int WIDTH = 80;
     public static final int HEIGHT = 30;
+    private World world;
+    private Player player;
 
     public Game() {
         ter.initialize(WIDTH, HEIGHT);
@@ -32,7 +36,9 @@ public class Game {
             c = Character.toUpperCase(c);
             switch (c) {
                 case 'N':
-                    startGame(makeWorld(getSeed()));
+                    world = makeWorld(getSeed());
+                    player = world.getPlayer();
+                    startGame();
                     break;
                 case 'L':
 //                    load();
@@ -48,16 +54,79 @@ public class Game {
 
     }
 
-    private void startGame(World world) {
-        Font font = new Font("Dialog", Font.PLAIN, 15);
+    private void startGame() {
+        Font font = new Font("Monaco", Font.BOLD, 15);
         StdDraw.setFont(font);
         while (true) {
-            drawFrame(world);
+            if (StdDraw.hasNextKeyTyped()) {
+                char c = Character.toUpperCase(StdDraw.nextKeyTyped());
+                switch (c) {
+                    case 'W':
+                        player.moveUp();
+                        break;
+                    case 'S':
+                        player.moveDown();
+                        break;
+                    case 'D':
+                        player.moveRight();
+                        break;
+                    case 'A':
+                        player.moveLeft();
+                        break;
+                }
+            }
+            drawFrame();
+            if (isWin()) {
+                StdDraw.clear(Color.BLACK);
+                StdDraw.setPenColor(Color.YELLOW);
+                StdDraw.text(WIDTH / 2, HEIGHT / 2, "YOU WIN");
+                StdDraw.show();
+                break;
+            }
         }
     }
 
-    private void drawFrame(World world) {
+    private boolean isWin() {
+        return world.reachDoor();
+    }
+
+    private void drawFrame() {
+        drawWorld();
+        drawUI();
+        StdDraw.show();
+    }
+
+    private void drawWorld() {
         ter.renderFrame(world.getWorld());
+    }
+
+    private void drawUI() {
+        StdDraw.setPenColor(Color.WHITE);
+        double x = StdDraw.mouseX();
+        double y = StdDraw.mouseY();
+        if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) {
+            return;
+        }
+        showTileInfo((int)x, (int)y);
+    }
+
+    private void showTileInfo(int x, int y) {
+        TETile[][] tiles = world.getWorld();
+        if (tiles[x][y] == Tileset.FLOOR) {
+            StdDraw.text(3, HEIGHT - 1, "FLOOR");
+        }
+        else if (tiles[x][y] == Tileset.LOCKED_DOOR) {
+            StdDraw.text(3, HEIGHT - 1, "LOCKED DOOR");
+        }
+        else if (tiles[x][y] == Tileset.WALL) {
+            StdDraw.text(3, HEIGHT - 1, "WALL");
+        }
+        else if (tiles[x][y] == Tileset.PLAYER) {
+            StdDraw.text(3, HEIGHT - 1, "YOU");
+        }
+        else {
+            StdDraw.text(3, HEIGHT - 1, "NOTHING");
+        }
     }
 
     private long getSeed() {
@@ -70,16 +139,10 @@ public class Game {
                 c = Character.toUpperCase(StdDraw.nextKeyTyped());
                 if (c >= '0' && c <= '9') {
                     sb.append(c);
-                } else if (c == 'S') {
-                    if (sb.isEmpty()) {
-                        continue;
-                    }
-                    else {
-                        break;
-                    }
+                } else if (c == 'S' && !sb.isEmpty()) {
+                    break;
                 } else {
                     StdDraw.text(WIDTH / 2, HEIGHT / 2 - 5, "Enter Integer or S");
-                    StdDraw.pause(500);
                 }
             }
             StdDraw.text(WIDTH / 2, HEIGHT / 2 - 4, sb.toString());
@@ -90,7 +153,7 @@ public class Game {
 
     private void initialize() {
         StdDraw.setCanvasSize(WIDTH * 15, HEIGHT * 15);
-        Font font = new Font("Dialog", Font.PLAIN, 30);
+        Font font = new Font("Monaco", Font.PLAIN, 30);
         StdDraw.setFont(font);
         StdDraw.setXscale(0, WIDTH);
         StdDraw.setYscale(0, HEIGHT);
@@ -107,10 +170,6 @@ public class Game {
         StdDraw.text(midX, midY - 4, "Load Game(L)");
         StdDraw.text(midX, midY - 8, "Quit(Q)");
         StdDraw.show();
-    }
-
-    private void showTileInfo(int x, int y) {
-
     }
 
     /**
@@ -133,11 +192,11 @@ public class Game {
         parser.parse(input);
         String option = parser.getOption();
         long seed = parser.getSeed();
-        World world = null;
         // start game
         switch (option) {
             case "N":
                 world = makeWorld(seed);
+                player = world.getPlayer();
                 break;
             case "L":
 //                loadGame();

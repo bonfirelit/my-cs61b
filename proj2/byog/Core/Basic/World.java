@@ -14,6 +14,8 @@ public class World {
     private final int RIGHT = 1;
     private final int UP = 2;
     private final int DOWN = 3;
+    private Player player;
+    private Position lockedDoor;
 
 
     protected static TETile[][] world;
@@ -91,6 +93,7 @@ public class World {
             y = p.getY();
         } while (world[x][y] != Tileset.WALL);
         world[x][y] = Tileset.LOCKED_DOOR;
+        lockedDoor = new Position(x, y);
     }
 
     public void connectAllRoom() {
@@ -284,19 +287,19 @@ public class World {
         return -1;
     }
 
-    public void showTileInfo(int x, int y) {
-        if (world[x][y] == Tileset.FLOOR) {
-            StdDraw.text(0, 0, "FLOOR");
-        }
-        else if (world[x][y] == Tileset.LOCKED_DOOR) {
-            StdDraw.text(0, 0, "LOCKED DOOR");
-        }
-        else if (world[x][y] == Tileset.WALL) {
-            StdDraw.text(0, 0, "WALL");
-        }
-        else if (world[x][y] == Tileset.PLAYER) {
-            StdDraw.text(0, 0, "YOU");
-        }
+    public boolean reachDoor() {
+        return player.getLocation().equals(lockedDoor);
+    }
+
+    public void createPlayer() {
+        Room r = rooms.get(rand.nextInt(rooms.size()));
+        Position p = choose(r, DOWN);
+        player = new Player(p.getX(), p.getY() + 1);
+        world[player.getLocationX()][player.getLocationY()] = Tileset.PLAYER;
+    }
+
+    public Player getPlayer() {
+        return player;
     }
 
     public  TETile[][] getWorld() {
