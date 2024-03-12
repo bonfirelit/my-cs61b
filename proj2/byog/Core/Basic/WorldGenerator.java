@@ -11,7 +11,7 @@ public class WorldGenerator {
         rand = new Random(seed);
         world = new World(seed, width, height);
         world.fillWithNothing();
-        world.makeRooms(rand.nextInt(70, 100));
+        world.makeRooms(rand.nextInt(100 - 70) + 70);
         world.placeRoom();
         world.connectAllRoom();
         world.addLockedDoor();

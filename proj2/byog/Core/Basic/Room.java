@@ -63,13 +63,13 @@ public class Room implements Comparable<Room>, Serializable {
     }
 
     public void setHeight() {
-        height = rand.nextInt(7, 11);
+        height = rand.nextInt(4) + 7;
     }
     public int getHeight() {
         return height;
     }
     public void setWidth() {
-        width = rand.nextInt(7, 11);
+        width = rand.nextInt(4) + 7;
     }
     public int getWidth() {
         return width;

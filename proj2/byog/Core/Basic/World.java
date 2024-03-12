@@ -82,11 +82,11 @@ public class World implements Serializable {
 
     public void addLockedDoor() {
         // 随机选择一个room
-        Room r = rooms.get(rand.nextInt(0, rooms.size()));
+        Room r = rooms.get(rand.nextInt(rooms.size()));
         int x, y;
         do {
             // 选择room的一条边
-            int side = rand.nextInt(0, 4);
+            int side = rand.nextInt(4);
             // 选择一个点
             Position p = choose(r, side);
             x = p.getX();
@@ -151,19 +151,19 @@ public class World implements Serializable {
         int X, Y;
         Position p = null;
         if (side == RIGHT) {
-            Y = rand.nextInt(y + 1, y + height - 1);
+            Y = rand.nextInt(height - 2) + y + 1;
             p = new Position(x + width - 1, Y);
         }
         if (side == LEFT) {
-            Y = rand.nextInt(y + 1, y + height - 1);
+            Y = rand.nextInt(height - 2) + y + 1;
             p = new Position(x, Y);
         }
         if (side == UP) {
-            X = rand.nextInt(x + 1, x + width - 1);
+            X = rand.nextInt(width - 2) + x + 1;
             p = new Position(X, y + height - 1);
         }
         if (side == DOWN) {
-            X = rand.nextInt(x + 1, x + width - 1);
+            X = rand.nextInt(width - 2) + x + 1;
             p = new Position(X, y);
         }
         return p;
@@ -177,7 +177,7 @@ public class World implements Serializable {
         int y1 = down.getY();
         int x2 = up.getX();
         int y2 = up.getY();
-        int y3 = y1 - y2 == 1 ? y1 : y1 - rand.nextInt(1, y1 - y2); // 两room紧挨着的情况
+        int y3 = y1 - y2 == 1 ? y1 : y1 - (rand.nextInt(y1 - y2 - 1) + 1); // 两room紧挨着的情况
         for (int y = y1; y >= y3; y--) {
             world[x1][y] = Tileset.FLOOR;
             putWall(x1 - 1, y);
@@ -219,7 +219,7 @@ public class World implements Serializable {
         int y1 = right.getY();
         int x2 = left.getX();
         int y2 = left.getY();
-        int x3 = x2 - x1 == 1 ? x1 : x1 + rand.nextInt(1, x2 - x1);
+        int x3 = x2 - x1 == 1 ? x1 : x1 + (rand.nextInt(x2 - x1 - 1) + 1);
         for (int x = x1; x <= x3; x++) {
             world[x][y1] = Tileset.FLOOR;
             putWall(x, y1 - 1);
@@ -312,7 +312,7 @@ public class World implements Serializable {
         Random rand = new Random(76544);
         World world = new World(rand.nextInt(), 80, 30);
         world.fillWithNothing();
-        world.makeRooms(rand.nextInt(70, 100));
+        world.makeRooms(rand.nextInt(30) + 70);
         world.placeRoom();
         world.connectAllRoom();
         world.addLockedDoor();

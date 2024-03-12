@@ -174,7 +174,7 @@ public class Game {
                 c = Character.toUpperCase(StdDraw.nextKeyTyped());
                 if (c >= '0' && c <= '9') {
                     sb.append(c);
-                } else if (c == 'S' && !sb.isEmpty()) {
+                } else if (c == 'S' && sb.length() != 0) {
                     break;
                 } else {
                     StdDraw.text(WIDTH / 2, HEIGHT / 2 - 5, "Enter Integer or S");
