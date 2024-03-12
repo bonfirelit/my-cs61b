@@ -26,7 +26,7 @@ public class Game {
     /**
      * Method used for playing a fresh game. The game should start from the main menu.
      */
-    public void playWithKeyboard() throws IOException, ClassNotFoundException {
+    public void playWithKeyboard() {
         initialize();
         showMenu();
         while (true) {
@@ -56,26 +56,36 @@ public class Game {
 
     }
 
-    private void saveGame() throws IOException {
-        FileOutputStream fos = new FileOutputStream(savePath);
-        ObjectOutputStream oos = new ObjectOutputStream(fos);
-        oos.writeObject(world);
-        oos.writeObject(player);
-        oos.close();
+    private void saveGame() {
+        try {
+            FileOutputStream fos = new FileOutputStream(savePath);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(world);
+            oos.writeObject(player);
+            oos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
+
 
     private void quitGame() {
         System.exit(0);
     }
 
-    private void loadGame() throws IOException, ClassNotFoundException {
-        File f = new File(savePath);
-        ObjectInputStream ois = new ObjectInputStream(new FileInputStream(f));
-        world = (World)ois.readObject();
-        player = (Player)ois.readObject();
+    private void loadGame() {
+        try {
+            File f = new File(savePath);
+            ObjectInputStream ois = new ObjectInputStream(new FileInputStream(f));
+            world = (World) ois.readObject();
+            player = (Player) ois.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
-    private void startGame() throws IOException {
+
+    private void startGame() {
         Font font = new Font("Monaco", Font.BOLD, 15);
         StdDraw.setFont(font);
         StringBuilder sb = new StringBuilder();
@@ -220,7 +230,7 @@ public class Game {
      * @param input the input string to feed to your program
      * @return the 2D TETile[][] representing the state of the world
      */
-    public TETile[][] playWithInputString(String input) throws IOException, ClassNotFoundException {
+    public TETile[][] playWithInputString(String input) {
         // TODO: Fill out this method to run the game using the input passed in,
         // and return a 2D tile representation of the world that would have been
         // drawn if the same inputs had been given to playWithKeyboard().
@@ -250,7 +260,7 @@ public class Game {
         return finalWorldFrame;
     }
 
-    private void updatePlayer(String move) throws IOException {
+    private void updatePlayer(String move) {
         for (int i = 0; i < move.length(); i++) {
             char c = Character.toUpperCase(move.charAt(i));
             if (c == ':' && move.charAt(i + 1) == 'Q') {
