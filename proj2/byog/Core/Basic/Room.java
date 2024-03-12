@@ -3,20 +3,20 @@ package byog.Core.Basic;
 import byog.TileEngine.TETile;
 import byog.TileEngine.Tileset;
 
+import java.io.Serializable;
 import java.util.Random;
 
-import static byog.Core.Basic.World.world;
-
-public class Room implements Comparable<Room>{
+public class Room implements Comparable<Room>, Serializable {
     private int height;
     private int width;
     private Position position;
     private TETile[][] room;
     private final Random rand;
+    private TETile[][] world;
 
-
-    public Room(long seed) {
+    public Room(long seed, World w) {
         rand = new Random(seed);
+        world = w.getWorld();
         setPosition(); // 确定room的左下角在world中的位置坐标(x, y)
         int x = position.getX();
         int y = position.getY();

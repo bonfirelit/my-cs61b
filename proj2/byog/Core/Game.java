@@ -9,6 +9,7 @@ import byog.TileEngine.Tileset;
 import edu.princeton.cs.introcs.StdDraw;
 
 import java.awt.*;
+import java.io.*;
 
 public class Game {
     TERenderer ter = new TERenderer();
@@ -17,15 +18,15 @@ public class Game {
     public static final int HEIGHT = 30;
     private World world;
     private Player player;
+    private final String savePath = "D://cs61b/my-cs61b/proj2/save";
 
     public Game() {
-        ter.initialize(WIDTH, HEIGHT);
     }
 
     /**
      * Method used for playing a fresh game. The game should start from the main menu.
      */
-    public void playWithKeyboard() {
+    public void playWithKeyboard() throws IOException, ClassNotFoundException {
         initialize();
         showMenu();
         while (true) {
@@ -41,22 +42,43 @@ public class Game {
                     startGame();
                     break;
                 case 'L':
-//                    load();
+                    loadGame();
+                    startGame();
                     break;
                 case 'Q':
-                    // quit();
+                    quitGame();
                     break;
             }
-            if (c == 'N' || c == 'L' || c == 'Q') {
+            if (c == 'N' || c == 'L') {
                 break;
             }
         }
 
     }
 
-    private void startGame() {
+    private void saveGame() throws IOException {
+        FileOutputStream fos = new FileOutputStream(savePath);
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+        oos.writeObject(world);
+        oos.writeObject(player);
+        oos.close();
+    }
+
+    private void quitGame() {
+        System.exit(0);
+    }
+
+    private void loadGame() throws IOException, ClassNotFoundException {
+        File f = new File(savePath);
+        ObjectInputStream ois = new ObjectInputStream(new FileInputStream(f));
+        world = (World)ois.readObject();
+        player = (Player)ois.readObject();
+    }
+
+    private void startGame() throws IOException {
         Font font = new Font("Monaco", Font.BOLD, 15);
         StdDraw.setFont(font);
+        StringBuilder sb = new StringBuilder();
         while (true) {
             if (StdDraw.hasNextKeyTyped()) {
                 char c = Character.toUpperCase(StdDraw.nextKeyTyped());
@@ -73,6 +95,19 @@ public class Game {
                     case 'A':
                         player.moveLeft();
                         break;
+                    case ':':
+                    case 'Q':
+                        sb.append(c);
+                        break;
+                }
+            }
+            if (sb.length() == 2) {
+                if (sb.toString().equals(":Q")) {
+                    saveGame();
+                    quitGame();
+                }
+                else {
+                    sb.setLength(0);
                 }
             }
             drawFrame();
@@ -112,16 +147,16 @@ public class Game {
 
     private void showTileInfo(int x, int y) {
         TETile[][] tiles = world.getWorld();
-        if (tiles[x][y] == Tileset.FLOOR) {
+        if (tiles[x][y].equals(Tileset.FLOOR)) {
             StdDraw.text(3, HEIGHT - 1, "FLOOR");
         }
-        else if (tiles[x][y] == Tileset.LOCKED_DOOR) {
-            StdDraw.text(3, HEIGHT - 1, "LOCKED DOOR");
+        else if (tiles[x][y].equals(Tileset.LOCKED_DOOR)) {
+            StdDraw.text(4, HEIGHT - 1, "LOCKED DOOR");
         }
-        else if (tiles[x][y] == Tileset.WALL) {
+        else if (tiles[x][y].equals(Tileset.WALL)) {
             StdDraw.text(3, HEIGHT - 1, "WALL");
         }
-        else if (tiles[x][y] == Tileset.PLAYER) {
+        else if (tiles[x][y].equals(Tileset.PLAYER)) {
             StdDraw.text(3, HEIGHT - 1, "YOU");
         }
         else {
@@ -152,6 +187,7 @@ public class Game {
     }
 
     private void initialize() {
+        ter.initialize(WIDTH, HEIGHT);
         StdDraw.setCanvasSize(WIDTH * 15, HEIGHT * 15);
         Font font = new Font("Monaco", Font.PLAIN, 30);
         StdDraw.setFont(font);
@@ -184,32 +220,58 @@ public class Game {
      * @param input the input string to feed to your program
      * @return the 2D TETile[][] representing the state of the world
      */
-    public TETile[][] playWithInputString(String input) {
+    public TETile[][] playWithInputString(String input) throws IOException, ClassNotFoundException {
         // TODO: Fill out this method to run the game using the input passed in,
         // and return a 2D tile representation of the world that would have been
         // drawn if the same inputs had been given to playWithKeyboard().
-        Parser parser = new Parser();
-        parser.parse(input);
+        Parser parser = new Parser(input);
         String option = parser.getOption();
         long seed = parser.getSeed();
+        String move = parser.getMove();
         // start game
         switch (option) {
             case "N":
                 world = makeWorld(seed);
                 player = world.getPlayer();
+                updatePlayer(move);
                 break;
             case "L":
-//                loadGame();
+                loadGame();
+                updatePlayer(move);
                 break;
             case "Q":
-//                quit();
+                quitGame();
                 break;
             default:
-                System.out.println("Please enter valid string");
+                System.out.println("Enter valid string");
                 System.exit(1);
         }
         TETile[][] finalWorldFrame = world.getWorld();
         return finalWorldFrame;
+    }
+
+    private void updatePlayer(String move) throws IOException {
+        for (int i = 0; i < move.length(); i++) {
+            char c = Character.toUpperCase(move.charAt(i));
+            if (c == ':' && move.charAt(i + 1) == 'Q') {
+                saveGame();
+                break;
+            }
+            switch (c) {
+                case 'W':
+                    player.moveUp();
+                    break;
+                case 'S':
+                    player.moveDown();
+                    break;
+                case 'D':
+                    player.moveRight();
+                    break;
+                case 'A':
+                    player.moveLeft();
+                    break;
+            }
+        }
     }
 
     private World makeWorld(long seed) {

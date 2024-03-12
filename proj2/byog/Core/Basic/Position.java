@@ -1,10 +1,9 @@
 package byog.Core.Basic;
 
-import byog.Core.RandomUtils;
 
-import java.util.Random;
+import java.io.Serializable;
 
-public class Position {
+public class Position implements Serializable {
     private int x;
     private int y;
     public Position(int x, int y) {

@@ -3,11 +3,11 @@ package byog.Core.Basic;
 import byog.TileEngine.TERenderer;
 import byog.TileEngine.TETile;
 import byog.TileEngine.Tileset;
-import edu.princeton.cs.introcs.StdDraw;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class World {
+public class World implements Serializable {
     public static int WIDTH;
     public static int HEIGHT;
     private final int LEFT = 0;
@@ -18,7 +18,7 @@ public class World {
     private Position lockedDoor;
 
 
-    protected static TETile[][] world;
+    private TETile[][] world;
     private List<Room> rooms;
     private Random rand;
 
@@ -41,7 +41,7 @@ public class World {
     public void makeRooms(int numOfRoom) {
         for (int i = 0; i < numOfRoom; i++) {
             int seed = rand.nextInt();
-            Room room = new Room(seed);
+            Room room = new Room(seed, this);
             if (room.getPosition().getX() == -1) { // 生成失败
                 continue;
             }
@@ -177,7 +177,7 @@ public class World {
         int y1 = down.getY();
         int x2 = up.getX();
         int y2 = up.getY();
-        int y3 = y1 - rand.nextInt(1, y1 - y2);
+        int y3 = y1 - y2 == 1 ? y1 : y1 - rand.nextInt(1, y1 - y2); // 两room紧挨着的情况
         for (int y = y1; y >= y3; y--) {
             world[x1][y] = Tileset.FLOOR;
             putWall(x1 - 1, y);
@@ -219,7 +219,7 @@ public class World {
         int y1 = right.getY();
         int x2 = left.getX();
         int y2 = left.getY();
-        int x3 = x1 + rand.nextInt(1, x2 - x1);
+        int x3 = x2 - x1 == 1 ? x1 : x1 + rand.nextInt(1, x2 - x1);
         for (int x = x1; x <= x3; x++) {
             world[x][y1] = Tileset.FLOOR;
             putWall(x, y1 - 1);
@@ -272,16 +272,16 @@ public class World {
         int y1 = p1.getY();
         int x2 = p2.getX();
         int y2 = p2.getY();
-        if (x1 + r1.getWidth() < x2) {
+        if (x1 + r1.getWidth() <= x2) {
             return RIGHT;
         }
-        else if (x2 + r2.getWidth() < x1) {
+        else if (x2 + r2.getWidth() <= x1) {
             return LEFT;
         }
-        else if (y1 + r1.getHeight() < y2) {
+        else if (y1 + r1.getHeight() <= y2) {
             return UP;
         }
-        else if (y2 + r2.getHeight() < y1) {
+        else if (y2 + r2.getHeight() <= y1) {
             return DOWN;
         }
         return -1;
@@ -294,7 +294,7 @@ public class World {
     public void createPlayer() {
         Room r = rooms.get(rand.nextInt(rooms.size()));
         Position p = choose(r, DOWN);
-        player = new Player(p.getX(), p.getY() + 1);
+        player = new Player(p.getX(), p.getY() + 1, this);
         world[player.getLocationX()][player.getLocationY()] = Tileset.PLAYER;
     }
 

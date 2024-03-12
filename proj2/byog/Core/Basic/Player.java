@@ -1,14 +1,17 @@
 package byog.Core.Basic;
 
+import byog.TileEngine.TETile;
 import byog.TileEngine.Tileset;
 
-import static byog.Core.Basic.World.world;
+import java.io.Serializable;
 
-public class Player {
+public class Player implements Serializable {
     private Position location;
+    private TETile[][] world;
 
-    public Player(int x, int y) {
+    public Player(int x, int y, World w) {
         location = new Position(x, y);
+        world = w.getWorld();
     }
 
     public void moveUp() {
@@ -48,7 +51,7 @@ public class Player {
         }
     }
     private boolean isValid(int x, int y) {
-        return world[x][y] == Tileset.FLOOR || world[x][y] == Tileset.LOCKED_DOOR;
+        return world[x][y].equals(Tileset.FLOOR) || world[x][y].equals(Tileset.LOCKED_DOOR);
     }
     public int getLocationX() {
         return location.getX();
